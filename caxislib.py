@@ -182,7 +182,7 @@ def helix_axis(num_bp, num_steps, midpoints, strand_a):
         for t in range(num_steps):
             summation[:, t] += midpoints[:, t, j]
             # Sum single helix position
-            for k in range(1, 5):
+            for k in range(1, 6):
                 summation[:, t] += (midpoints[:, t, (j-k) % num_bp] +
                                     midpoints[:, t, (j+k) % num_bp])
             # Average helix (almost full turn)
@@ -238,10 +238,8 @@ def caxis(name, num_bp, num_steps, midpoints, tw):
                                     midpoints[:, t, (j+k) % num_bp])
             # Add the flanks with weight < 1
             weight = (360.0 - prev) / (total_twist[t] - prev)
-            summation[:, t] = \
-                (summation[:, t] -
-                    (1 - weight) * (midpoints[:, t, (j-k) % num_bp] +
-                                    midpoints[:, t, (j+k) % num_bp]))
+            summation[:, t] -= (1-weight) * (midpoints[:, t, (j-k) % num_bp] +
+                                             midpoints[:, t, (j+k) % num_bp])
             weight_3d = np.array([weight, weight, weight])
             result[:, t, j] = summation[:, t] / (2*(k + weight_3d) - 1)
     print("Done!")

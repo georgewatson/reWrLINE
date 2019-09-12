@@ -48,6 +48,7 @@ strand_a, strand_b, midpoints = caxislib.read(name, num_bp, num_steps)
 helix_axis = caxislib.helix_axis(num_bp, num_steps, midpoints, strand_a)
 full_twist = caxislib.full_twist(name, num_bp, num_steps, strand_a, strand_b,
                                  helix_axis)
+caxis = caxislib.caxis(name, num_bp, num_steps, midpoints, full_twist)
 
 tests = {
     "rotate_to_x": [np.linalg.norm(caxislib.rotate_to_x(a1)), 1.7320508075689],
@@ -64,6 +65,7 @@ tests = {
     "read midpoints": [sum(sum(sum(midpoints))), 1057262.995],
     "helix_axis": [sum(sum(sum(helix_axis))), 1057262.995],
     "full_twist": [sum(sum(full_twist)), 83325.202562320],
+    "caxis\t": [sum(sum(sum(caxis))), 1057251.5419271],
     "C.mdcrd\t": [filecmp.cmp(f'{name}/C.mdcrd', f'{name}/C.mdcrd.original'),
                   True],
     "tw.ser\t": [filecmp.cmp(f'{name}/tw.ser', f'{name}/tw.ser.original'),
