@@ -25,6 +25,7 @@ Tests ensure consistency with WrLINE, not correctness.
 """
 
 import caxislib
+import writhe
 import filecmp
 import numpy as np
 from termcolor import colored
@@ -38,19 +39,49 @@ name = 'test'
 num_bp = 336
 num_steps = 8
 
-a1 = np.array([330.0, 50.0, 0.0])
-a2 = np.array([330.0, 40.0, 10.0])
-b1 = np.array([330.0, 45.0, 20.0])
-b2 = np.array([335.0, 40.0, 15.0])
+a = np.array([[330.0, 330.0],
+              [50.0,  40.0],
+              [0.0,   10.0]])
+b = np.array([[330.0, 335.0],
+              [45.0,  40.0],
+              [20.0,  15.0]])
+
+a1 = a[:, 0]
+a2 = a[:, 1]
+b1 = b[:, 0]
+b2 = b[:, 1]
 z = np.array([5.0, 0.0, -2.0])
 
+
+print(f"Processing {name}")
+print("Reading files & initialising arrays")
 strand_a, strand_b, midpoints = caxislib.read(name, num_bp, num_steps)
+
+print("Calculating first-order helical axis")
 helix_axis = caxislib.helix_axis(num_bp, num_steps, midpoints, strand_a)
-full_twist = caxislib.full_twist(name, num_bp, num_steps, strand_a, strand_b,
-                                 helix_axis)
-caxis = caxislib.caxis(name, num_bp, num_steps, midpoints, full_twist)
+
+print("Calculating twist")
+twist = caxislib.full_twist(name, num_bp, num_steps, strand_a, strand_b,
+                            helix_axis)
+
+print("Calculating helical axis")
+caxis = caxislib.caxis(name, num_bp, num_steps, midpoints, twist)
+
+print("Calculating register angles")
+sinreg = caxislib.sinreg(name, num_bp, num_steps, midpoints, caxis)
+
+print("Writing output .xyz and .3col files")
+caxislib.make_files(name, num_bp, num_steps, midpoints, caxis)
+
+read_coords = writhe.read_3col(name + '/C1.3col', num_bp, num_steps)
+wr = writhe.writhe(read_coords, 2, len(read_coords[0]))
+full_writhe = writhe.main(name, num_bp, num_steps)
 
 tests = {
+    "cross\t": [sum(sum(caxislib.cross(a, b))), -8850],
+    "dot\t": [sum(caxislib.dot(a, b)), 223450],
+    "norm 1\t": [sum(caxislib.norm(a)), 666.33216833189],
+    "norm 2\t": [sum(caxislib.norm(b)), 671.36690822942],
     "rotate_to_x": [np.linalg.norm(caxislib.rotate_to_x(a1)), 1.7320508075689],
     "rotate_to_z": [np.linalg.norm(caxislib.rotate_to_z(a1)), 1.7320508075689],
     "twist 1\t": [caxislib.twist(a1, a2, b1, b2, z), 71.997556736987],
@@ -64,12 +95,26 @@ tests = {
     "read strand_b": [sum(sum(sum(strand_b))), 1057277.65],
     "read midpoints": [sum(sum(sum(midpoints))), 1057262.995],
     "helix_axis": [sum(sum(sum(helix_axis))), 1057262.995],
-    "full_twist": [sum(sum(full_twist)), 83325.202562320],
+    "full_twist": [sum(sum(twist)), 83325.202562320],
     "caxis\t": [sum(sum(sum(caxis))), 1057251.5419271],
-    "C.mdcrd\t": [filecmp.cmp(f'{name}/C.mdcrd', f'{name}/C.mdcrd.original'),
-                  True],
-    "tw.ser\t": [filecmp.cmp(f'{name}/tw.ser', f'{name}/tw.ser.original'),
-                 True]
+    "sinreg\t": [sum(sum(sinreg)), 46.523100971271],
+    "read_3col": [sum(sum(sum(read_coords))), sum(sum(sum(caxis)))],
+    "writhe.writhe": [wr, -1.013515045594],
+    "writhe.main": [sum(sum(full_writhe)), 28.1093914578840],
+    "C.3col\t": [filecmp.cmp(f'{name}/C.3col',
+                             f'{name}/C.3col.original'), True],
+    "C.xyz\t": [filecmp.cmp(f'{name}/C.xyz',
+                            f'{name}/C.xyz.original'), True],
+    "C1.3col\t": [filecmp.cmp(f'{name}/C1.3col',
+                              f'{name}/C1.3col.original'), True],
+    "C1.xyz\t": [filecmp.cmp(f'{name}/C1.xyz',
+                             f'{name}/C1.xyz.original'), True],
+    "tw.ser\t": [filecmp.cmp(f'{name}/tw.ser',
+                             f'{name}/tw.ser.original'), True],
+    "sinreg.ser": [filecmp.cmp(f'{name}/sinreg.ser',
+                               f'{name}/sinreg.ser.original'), True],
+    "writhe.ser": [filecmp.cmp(f'{name}/writhe.ser',
+                               f'{name}/writhe.ser.original'), True]
 }
 
 pass_text = colored('[PASS]', 'green')

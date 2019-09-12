@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import sys
 import os
 import writhe
@@ -27,11 +29,11 @@ print("Calculating helical axis")
 caxis = caxislib.caxis(name, num_bp, num_steps, midpoints, twist)
 
 print("Calculating register angles")
-caxislib.sin_reg(name, num_bp, num_steps, midpoints, caxis)
+sinreg = caxislib.sinreg(name, num_bp, num_steps, midpoints, caxis)
 
 print("Writing output .xyz and .3col files")
 caxislib.make_files(name, num_bp, num_steps, midpoints, caxis)
 
-writhe.main(name, num_bp, num_steps)
+wr = writhe.main(name, num_bp, num_steps)
 
 print(f"Job {name} done!")

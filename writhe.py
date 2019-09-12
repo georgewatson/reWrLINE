@@ -1,11 +1,11 @@
 import numpy as np
 
 
-def read_3col(name, num_bp, num_steps):
+def read_3col(filename, num_bp, num_steps):
     """
     Reads a 3col coordinate file and splits it by timestep
     """
-    coords = np.loadtxt(name)
+    coords = np.loadtxt(filename)
     x = []
     t = 0
     for i in range(num_steps):
@@ -34,8 +34,7 @@ def writhe(x, t, l, axis=2):
             # Discretised Gauss integral
             # Add each individual contribution from a pair of tangent vectors
             result += (np.dot(vector, np.cross(tangents_j, tangents_k)) /
-                       np.linalg.norm(vector)**3 /
-                       2 * np.pi)
+                       (np.linalg.norm(vector)**3 * 2 * np.pi))
     return result
 
 
@@ -47,9 +46,9 @@ def main(name, num_bp, num_steps):
     # Calculate writhe for num_steps timesteps
     wr = []
     for t in range(num_steps):
-        if t % 100 == 0:
-            print(f"\rWorking on steps >= {t}", end="")
+        print(f"\rWorking on step {t}...", end=" ")
         wr.append([t+1, writhe(coords, t, length)])
     wr = np.array(wr)
     np.savetxt(name+'/writhe.ser', wr, fmt='%5d %9.4f')
-    print()
+    print("Done!")
+    return wr

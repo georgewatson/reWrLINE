@@ -4,6 +4,31 @@ import numpy as np
 # Maths
 
 
+def cross(a, b):
+    """
+    Cross product of two arrays of 3-vectors
+    """
+    assert(np.shape(a) == np.shape(b))
+    return np.array([a[1]*b[2] - a[2]*b[1],
+                     a[2]*b[0] - a[0]*b[2],
+                     a[0]*b[1] - a[1]*b[0]])
+
+
+def dot(a, b):
+    """
+    Dot product of two arrays of 3-vectors
+    """
+    assert(np.shape(a) == np.shape(b))
+    return sum(a[i] * b[i] for i in range(len(a)))
+
+
+def norm(a):
+    """
+    Norms of an array of 3-vectors
+    """
+    return np.sqrt(a[0]**2 + a[1]**2 + a[2]**2)
+
+
 def rotate_to_x(vector):
     """
     Returns the rotation matrix that rotates a vector to the x axis
@@ -121,8 +146,7 @@ def make_files(name, num_bp, num_steps, midpoints, caxis):
         for i in range(num_steps):
             c_xyz.write(f"{num_bp}\n\n")
             c1_xyz.write(f"{num_bp}\n\n")
-            if i % 1000 == 0:
-                print(f"\r.xyz output written up to step {i}", end=" ")
+            print(f"\r.xyz output written up to step {i}...", end=" ")
             for j in range(num_bp):
                 c_xyz.write(" ".join(["H",
                                       f"{midpoints[0][i][j]:8.3f}",
@@ -137,7 +161,7 @@ def make_files(name, num_bp, num_steps, midpoints, caxis):
         print("Done!")
 
 
-def sin_reg(name, num_bp, num_steps, midpoints, caxis):
+def sinreg(name, num_bp, num_steps, midpoints, caxis):
     """
     Calculates sine of register angles
     """
@@ -145,26 +169,26 @@ def sin_reg(name, num_bp, num_steps, midpoints, caxis):
     print("Calculating register angles")
     for j in range(num_bp):
         print(f"\rWorking on base pair {j}...", end=" ")
-        m = np.linspace(j-1, j+1, num=3) % num_bp
+        m = list(map(int, np.linspace(j-1, j+1, num=3) % num_bp))
         # Vectors bent on a plane
         v0 = caxis[:, :, m[1]] - caxis[:, :, m[0]]
         v1 = caxis[:, :, m[2]] - caxis[:, :, m[1]]
-        plane_vector = np.cross(v1, v0)
+        plane_vector = cross(v1, v0)
         minor_groove = midpoints[:, :, m[0]] - caxis[:, :, m[0]]
         # sinreg[:, j+1] = |M × C| / (|M| |C|)
         # where M = minor_groove & C = plane_vector
-        result[:, j+1] = \
-            (np.linalg.norm(np.cross(minor_groove, plane_vector)) /
-             (np.linalg.norm(minor_groove) * np.linalg.norm(plane_vector)))
+        result[:, j+1] = (norm(cross(minor_groove, plane_vector)) /
+                          (norm(minor_groove) * norm(plane_vector)))
         # To obtain the sign of the result,
         # where positive is a minor groove pointing into the circle,
         # take the dot product of the minor groove with the unit normal vector
         for i in range(num_steps):
-            if np.dot(v1 - v0, minor_groove)[i] < 0:
+            if dot(v1 - v0, minor_groove)[i] < 0:
                 result[i, j+1] = -result[i, j+1]
     result[:, 0] = np.linspace(0.01, 0.01*num_steps, num=num_steps)
     np.savetxt(name + '/sinreg.ser', result, fmt='%8.3f')
     print("Done!")
+    return result
 
 
 def helix_axis(num_bp, num_steps, midpoints, strand_a):
