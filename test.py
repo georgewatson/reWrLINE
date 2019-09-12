@@ -19,8 +19,7 @@ Sutthibutpong T, Harris S A and Noy A 2015 J. Chem. Theory Comput. 11 2768-75
 https://doi.org/10.1021/acs.jctc.5b00035
 
 This is the test suite.
-It is recommended that you run this before using this implementation of the
-software.
+It is recommended that you run this before using this implementation.
 Tests ensure consistency with WrLINE, not correctness.
 """
 
@@ -73,7 +72,10 @@ sinreg = caxislib.sinreg(name, num_bp, num_steps, midpoints, caxis)
 print("Writing output .xyz and .3col files")
 caxislib.make_files(name, num_bp, num_steps, midpoints, caxis)
 
+print("Reading coordinates")
 read_coords = writhe.read_3col(name + '/C1.3col', num_bp, num_steps)
+
+print("Calculating writhe")
 wr = writhe.writhe(read_coords, 2, len(read_coords[0]))
 full_writhe = writhe.main(name, num_bp, num_steps)
 

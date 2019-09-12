@@ -8,6 +8,7 @@ def cross(a, b):
     """
     Cross product of two arrays of 3-vectors
     """
+    assert(np.shape(a)[0] == 3)
     assert(np.shape(a) == np.shape(b))
     return np.array([a[1]*b[2] - a[2]*b[1],
                      a[2]*b[0] - a[0]*b[2],
@@ -16,7 +17,7 @@ def cross(a, b):
 
 def dot(a, b):
     """
-    Dot product of two arrays of 3-vectors
+    Dot product of two arrays of vectors
     """
     assert(np.shape(a) == np.shape(b))
     return sum(a[i] * b[i] for i in range(len(a)))
@@ -24,9 +25,9 @@ def dot(a, b):
 
 def norm(a):
     """
-    Norms of an array of 3-vectors
+    Norms of an array of vectors
     """
-    return np.sqrt(a[0]**2 + a[1]**2 + a[2]**2)
+    return np.sqrt(sum(x**2 for x in a))
 
 
 def rotate_to_x(vector):
@@ -141,12 +142,13 @@ def make_files(name, num_bp, num_steps, midpoints, caxis):
         caxis is the fully processed helical CAXIS
     """
     with open(name + '/C.xyz', 'w') as c_xyz, \
-            open(name + '/C1.xyz', 'w') as c1_xyz:
-        print("Writing .xyz output")
+            open(name + '/C1.xyz', 'w') as c1_xyz, \
+            open(name + '/C.3col', 'w') as c_3col, \
+            open(name + '/C1.3col', 'w') as c1_3col:
         for i in range(num_steps):
             c_xyz.write(f"{num_bp}\n\n")
             c1_xyz.write(f"{num_bp}\n\n")
-            print(f"\r.xyz output written up to step {i}...", end=" ")
+            print(f"\r\tStep {i}...", end=" ")
             for j in range(num_bp):
                 c_xyz.write(" ".join(["H",
                                       f"{midpoints[0][i][j]:8.3f}",
@@ -158,6 +160,14 @@ def make_files(name, num_bp, num_steps, midpoints, caxis):
                                        f"{caxis[1][i][j]:8.3f}",
                                        f"{caxis[2][i][j]:8.3f}",
                                        "\n"]))
+                c_3col.write(" ".join([f"{midpoints[0][i][j]:8.3f}",
+                                       f"{midpoints[1][i][j]:8.3f}",
+                                       f"{midpoints[2][i][j]:8.3f}",
+                                       "\n"]))
+                c1_3col.write(" ".join([f"{caxis[0][i][j]:8.3f}",
+                                        f"{caxis[1][i][j]:8.3f}",
+                                        f"{caxis[2][i][j]:8.3f}",
+                                        "\n"]))
         print("Done!")
 
 
@@ -166,9 +176,8 @@ def sinreg(name, num_bp, num_steps, midpoints, caxis):
     Calculates sine of register angles
     """
     result = np.zeros((num_steps, num_bp + 1))
-    print("Calculating register angles")
     for j in range(num_bp):
-        print(f"\rWorking on base pair {j}...", end=" ")
+        print(f"\r\tBase pair {j}...", end=" ")
         m = list(map(int, np.linspace(j-1, j+1, num=3) % num_bp))
         # Vectors bent on a plane
         v0 = caxis[:, :, m[1]] - caxis[:, :, m[0]]
@@ -198,9 +207,8 @@ def helix_axis(num_bp, num_steps, midpoints, strand_a):
     Used for twist calculation.
     """
     result = np.zeros(np.shape(strand_a))
-    print("Calculating helix axis")
     for j in range(num_bp):
-        print(f"\rWorking on base pair {j}...", end=" ")
+        print(f"\r\tBase pair {j}...", end=" ")
         # Summation of coordinates
         summation = np.zeros((3, num_steps))
         for t in range(num_steps):
@@ -220,9 +228,8 @@ def full_twist(name, num_bp, num_steps, strand_a, strand_b, haxis):
     Calculates twist
     """
     result = np.zeros((num_steps, num_bp))
-    print("Calculating twist")
     for j in range(num_bp):
-        print(f"\rWorking on base pair {j}...", end=" ")
+        print(f"\r\tBase pair {j}...", end=" ")
         for t in range(num_steps):
             z = haxis[:, t, (j+1) % num_bp] - haxis[:, t, (j-1) % num_bp]
             result[t, j] = twist(strand_a[:, t, j],
@@ -242,9 +249,8 @@ def caxis(name, num_bp, num_steps, midpoints, tw):
     & including the weight of the excess base pair
     """
     result = np.zeros(np.shape(midpoints))
-    print("Calculating central axis")
     for j in range(num_bp):
-        print(f"\rWorking on base pair {j}...", end=" ")
+        print(f"\r\tBase pair {j}...", end=" ")
         total_twist = np.zeros(num_steps)
         summation = np.zeros((3, num_steps))
         for t in range(num_steps):

@@ -39,14 +39,13 @@ def writhe(x, t, l, axis=2):
 
 
 def main(name, num_bp, num_steps):
-    print("Calculating writhe")
     # Read file
     coords = read_3col(name + '/C1.3col', num_bp, num_steps)
     length = len(coords[0])
     # Calculate writhe for num_steps timesteps
     wr = []
     for t in range(num_steps):
-        print(f"\rWorking on step {t}...", end=" ")
+        print(f"\r\tStep {t}...", end=" ")
         wr.append([t+1, writhe(coords, t, length)])
     wr = np.array(wr)
     np.savetxt(name+'/writhe.ser', wr, fmt='%5d %9.4f')

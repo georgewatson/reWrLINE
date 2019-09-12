@@ -1,9 +1,31 @@
 #! /usr/bin/env python3
 
+"""
+        __        __    _     ___ _   _ _____
+ _ __ __\ \      / / __| |   |_ _| \ | | ____|
+| '__/ _ \ \ /\ / / '__| |    | ||  \| |  _|
+| | |  __/\ V  V /| |  | |___ | || |\  | |___
+|_|  \___| \_/\_/ |_|  |_____|___|_| \_|_____|
+
+reWrLINE: A reimplementation of WrLINE
+
+(c) 2019 George D. Watson, University of York
+https://georgewatson.me
+
+Based on WrLINE
+by Thana Sutthibutpong, Sarah Harris, and Agnes Noy.
+Please cite
+Sutthibutpong T, Harris S A and Noy A 2015 J. Chem. Theory Comput. 11 2768-75
+https://doi.org/10.1021/acs.jctc.5b00035
+"""
+
 import sys
 import os
 import writhe
 import caxislib
+
+print(__doc__)
+print("---\n")
 
 name = sys.argv[1]
 top = sys.argv[2]
@@ -34,6 +56,7 @@ sinreg = caxislib.sinreg(name, num_bp, num_steps, midpoints, caxis)
 print("Writing output .xyz and .3col files")
 caxislib.make_files(name, num_bp, num_steps, midpoints, caxis)
 
+print("Calculating writhe")
 wr = writhe.main(name, num_bp, num_steps)
 
 print(f"Job {name} done!")
