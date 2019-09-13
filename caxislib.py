@@ -126,7 +126,7 @@ def read(name, num_bp, num_steps, linear=False):
         # Coordinate representation of a base-pair step
         midpoints = np.zeros(np.shape(strand_a))
         for i in range(num_bp):
-            if linear and np.shape(strand_a)[2] < i + 1:
+            if linear and i > np.shape(strand_a)[2]:
                 midpoints[:, :, i] = 0.5 * (strand_a[:, :, i] +
                                             strand_b[:, :, i])
             else:
@@ -302,7 +302,7 @@ def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
                 prev = total_twist[t]
                 # Just discard the ends in linear DNA
                 # This might not be the best approach
-                if linear and (j-k <= 0 or j+k > np.shape(tw)[1]):
+                if linear and (j-k < 0 or j+k >= np.shape(tw)[1]):
                     pass
                 else:
                     # Two more flanking steps would make twist exceed 360
