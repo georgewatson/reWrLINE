@@ -127,7 +127,7 @@ def read(name, num_bp, num_steps, linear=False):
         midpoints = np.zeros(np.shape(strand_a))
         for i in range(num_bp):
             if linear and np.shape(strand_a)[2] < i + 1:
-                midpoints[:, :, i] = 0.5 * (strand_a[:, : i] +
+                midpoints[:, :, i] = 0.5 * (strand_a[:, :, i] +
                                             strand_b[:, :, i])
             else:
                 midpoints[:, :, i] = (0.25 *
