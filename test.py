@@ -79,6 +79,13 @@ print("Calculating writhe")
 wr = writhe.writhe(read_coords, 2, len(read_coords[0]))
 full_writhe = writhe.main(name, num_bp, num_steps)
 
+# Linear "tests"
+
+print("Finding linear helix axis")
+linear_axis = caxislib.helix_axis(num_bp, num_steps, midpoints, strand_a,
+                                  linear=True)
+print(np.shape(linear_axis))
+
 tests = {
     "cross\t": [sum(sum(caxislib.cross(a, b))), -8850],
     "dot\t": [sum(caxislib.dot(a, b)), 223450],
@@ -97,6 +104,8 @@ tests = {
     "read strand_b": [sum(sum(sum(strand_b))), 1057277.65],
     "read midpoints": [sum(sum(sum(midpoints))), 1057262.995],
     "helix_axis": [sum(sum(sum(helix_axis))), 1057262.995],
+    "helix_axis lin": [sum(sum(linear_axis[:, :, 150])),
+                       sum(sum(helix_axis[:, :, 150]))],
     "full_twist": [sum(sum(twist)), 83325.202562320],
     "caxis\t": [sum(sum(sum(caxis))), 1057251.5419271],
     "sinreg\t": [sum(sum(sinreg)), 46.523100971271],
@@ -116,7 +125,7 @@ tests = {
     "sinreg.ser": [filecmp.cmp(f'{name}/sinreg.ser',
                                f'{name}/sinreg.ser.original'), True],
     "writhe.ser": [filecmp.cmp(f'{name}/writhe.ser',
-                               f'{name}/writhe.ser.original'), True]
+                               f'{name}/writhe.ser.original'), True],
 }
 
 pass_text = colored('[PASS]', 'green')

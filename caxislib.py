@@ -200,7 +200,7 @@ def sinreg(name, num_bp, num_steps, midpoints, caxis):
     return result
 
 
-def helix_axis(num_bp, num_steps, midpoints, strand_a):
+def helix_axis(num_bp, num_steps, midpoints, strand_a, linear=False):
     """
     Calculates the first-order helical axis
     without taking the weight.
@@ -212,11 +212,21 @@ def helix_axis(num_bp, num_steps, midpoints, strand_a):
         # Summation of coordinates
         summation = np.zeros((3, num_steps))
         for t in range(num_steps):
-            summation[:, t] += midpoints[:, t, j]
             # Sum single helix position
-            for k in range(1, 6):
-                summation[:, t] += (midpoints[:, t, (j-k) % num_bp] +
-                                    midpoints[:, t, (j+k) % num_bp])
+            summation[:, t] += midpoints[:, t, j]
+            k = 0
+            while k < 5:
+                k += 1
+                if linear:
+                    try:
+                        summation[:, t] += (midpoints[:, t, j-k] +
+                                            midpoints[:, t, j+k])
+                    except IndexError:
+                        k -= 1
+                        break
+                else:
+                    summation[:, t] += (midpoints[:, t, (j-k) % num_bp] +
+                                        midpoints[:, t, (j+k) % num_bp])
             # Average helix (almost full turn)
             result[:, t, j] = summation[:, t] / (2*k + 1)
     print("Done!")

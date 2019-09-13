@@ -14,18 +14,18 @@ def read_3col(filename, num_bp, num_steps):
     return np.array(x)
 
 
-def writhe(x, t, l, axis=2):
+def writhe(coords, t, length, axis=2):
     """
     Calculates write for a single timestep
     """
-    shape = np.shape(x[t])
+    shape = np.shape(coords[t])
     y = np.zeros((shape[0]+1, shape[1]))
     # Read one bp-step
-    y[:shape[0], :] = x[t]
+    y[:shape[0], :] = coords[t]
     # Add the head at the bottom
-    y[shape[0], :] = x[t, 0]
+    y[shape[0], :] = coords[t, 0]
     result = 0
-    for j in range(l):
+    for j in range(length):
         for k in range(j):
             tangents_j = y[j+1] - y[j]
             tangents_k = y[k+1] - y[k]
