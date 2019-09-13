@@ -32,11 +32,17 @@ top = sys.argv[2]
 traj = sys.argv[3]
 num_bp = int(sys.argv[4])
 num_steps = int(sys.argv[5])
+try:
+    linear = sys.argv[6] not in ('0', 'False')
+except IndexError:
+    linear = False
 
 # Strip trajectory to get C1' coordinates
 os.system(' '.join(['bash stripC.sh', name, top, traj]))
 
 print(f"Processing {name}")
+print(f"Treating system as {'linear' if linear else 'circular'}")
+
 print("Reading files & initialising arrays")
 strand_a, strand_b, midpoints = caxislib.read(name, num_bp, num_steps)
 

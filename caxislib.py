@@ -99,7 +99,7 @@ def twist(a1, a2, b1, b2, z):
 # IO
 
 
-def read(name, num_bp, num_steps):
+def read(name, num_bp, num_steps, linear=False):
     """
     Reads a .mdcrd file & create returns a 3D array of atomic coordinates
     """
@@ -126,10 +126,15 @@ def read(name, num_bp, num_steps):
         # Coordinate representation of a base-pair step
         midpoints = np.zeros(np.shape(strand_a))
         for i in range(num_bp):
-            midpoints[:, :, i] = 0.25 * (strand_a[:, :, i] +
-                                         strand_a[:, :, ((i + 1) % num_bp)] +
-                                         strand_b[:, :, i] +
-                                         strand_b[:, :, ((i + 1) % num_bp)])
+            if linear and np.shape(strand_a)[2] < i + 1:
+                midpoints[:, :, i] = 0.5 * (strand_a[:, : i] +
+                                            strand_b[:, :, i])
+            else:
+                midpoints[:, :, i] = (0.25 *
+                                      (strand_a[:, :, i] +
+                                       strand_a[:, :, ((i + 1) % num_bp)] +
+                                       strand_b[:, :, i] +
+                                       strand_b[:, :, ((i + 1) % num_bp)]))
 
         return strand_a, strand_b, midpoints
 
@@ -171,7 +176,7 @@ def make_files(name, num_bp, num_steps, midpoints, caxis):
         print("Done!")
 
 
-def sinreg(name, num_bp, num_steps, midpoints, caxis):
+def sinreg(name, num_bp, num_steps, midpoints, caxis, write=True):
     """
     Calculates sine of register angles
     """
@@ -195,7 +200,8 @@ def sinreg(name, num_bp, num_steps, midpoints, caxis):
             if dot(v1 - v0, minor_groove)[i] < 0:
                 result[i, j+1] = -result[i, j+1]
     result[:, 0] = np.linspace(0.01, 0.01*num_steps, num=num_steps)
-    np.savetxt(name + '/sinreg.ser', result, fmt='%8.3f')
+    if write:
+        np.savetxt(name + '/sinreg.ser', result, fmt='%8.3f')
     print("Done!")
     return result
 
@@ -233,7 +239,8 @@ def helix_axis(num_bp, num_steps, midpoints, strand_a, linear=False):
     return result
 
 
-def full_twist(name, num_bp, num_steps, strand_a, strand_b, haxis):
+def full_twist(name, num_bp, num_steps, strand_a, strand_b, haxis,
+               linear=False, write=True):
     """
     Calculates twist
     """
@@ -241,18 +248,40 @@ def full_twist(name, num_bp, num_steps, strand_a, strand_b, haxis):
     for j in range(num_bp):
         print(f"\r\tBase pair {j}...", end=" ")
         for t in range(num_steps):
-            z = haxis[:, t, (j+1) % num_bp] - haxis[:, t, (j-1) % num_bp]
-            result[t, j] = twist(strand_a[:, t, j],
-                                 strand_b[:, t, j],
-                                 strand_a[:, t, (j+1) % num_bp],
-                                 strand_b[:, t, (j+1) % num_bp],
-                                 z)
-    np.savetxt(name + '/tw.ser', result, fmt='%8.3f')
+            # Linear special cases
+            if linear:
+                # Does haxis[:, :, j+1] exist?
+                if np.shape(haxis)[2] > j + 1:
+                    # If haxis[:, :, j-1] doesn't exist,
+                    # approximate using half the range
+                    if j > 0:
+                        z = haxis[:, t, j+1] - haxis[:, t, j-1]
+                    else:
+                        z = 2 * (haxis[:, t, j+1] - haxis[:, t, j])
+                    result[t, j] = twist(strand_a[:, t, j],
+                                         strand_b[:, t, j],
+                                         strand_a[:, t, (j+1)],
+                                         strand_b[:, t, (j+1)],
+                                         z)
+                # If not, just return zero
+                # This may not be the best way to handle this,
+                # but it works for now
+                else:
+                    result[t, j] = 0
+            else:
+                z = haxis[:, t, (j+1) % num_bp] - haxis[:, t, (j-1) % num_bp]
+                result[t, j] = twist(strand_a[:, t, j],
+                                     strand_b[:, t, j],
+                                     strand_a[:, t, (j+1) % num_bp],
+                                     strand_b[:, t, (j+1) % num_bp],
+                                     z)
+    if write:
+        np.savetxt(name + '/tw.ser', result, fmt='%8.3f')
     print("Done!")
     return result
 
 
-def caxis(name, num_bp, num_steps, midpoints, tw):
+def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
     """
     Calculates the central helical axis
     by performing the running average of each bp with its 2*k neighbours
@@ -271,15 +300,27 @@ def caxis(name, num_bp, num_steps, midpoints, tw):
                 k += 1
                 # Store previous total twist
                 prev = total_twist[t]
-                # Adding two more flanking steps would make twist exceed 360
-                total_twist[t] += tw[t, (j-k) % num_bp] + tw[t, (j+k) % num_bp]
-                # Sum single helix position
-                summation[:, t] += (midpoints[:, t, (j-k) % num_bp] +
-                                    midpoints[:, t, (j+k) % num_bp])
+                # Just discard the ends in linear DNA
+                # This might not be the best approach
+                if linear and (j <= 0 or np.shape(tw)[1] < j + k):
+                    pass
+                else:
+                    # Two more flanking steps would make twist exceed 360
+                    total_twist[t] += (tw[t, (j-k) % num_bp] +
+                                       tw[t, (j+k) % num_bp])
+                    # Sum single helix position
+                    summation[:, t] += (midpoints[:, t, (j-k) % num_bp] +
+                                        midpoints[:, t, (j+k) % num_bp])
             # Add the flanks with weight < 1
             weight = (360.0 - prev) / (total_twist[t] - prev)
-            summation[:, t] -= (1-weight) * (midpoints[:, t, (j-k) % num_bp] +
-                                             midpoints[:, t, (j+k) % num_bp])
+            # Again, discard the ends in linear DNA
+            # This might not be the best approach
+            if linear and (j <= 0 or np.shape(tw)[1] < j + k):
+                pass
+            else:
+                summation[:, t] -= ((1-weight) *
+                                    (midpoints[:, t, (j-k) % num_bp] +
+                                     midpoints[:, t, (j+k) % num_bp]))
             weight_3d = np.array([weight, weight, weight])
             result[:, t, j] = summation[:, t] / (2*(k + weight_3d) - 1)
     print("Done!")

@@ -79,12 +79,25 @@ print("Calculating writhe")
 wr = writhe.writhe(read_coords, 2, len(read_coords[0]))
 full_writhe = writhe.main(name, num_bp, num_steps)
 
-# Linear "tests"
+# Linear
 
-print("Finding linear helix axis")
-linear_axis = caxislib.helix_axis(num_bp, num_steps, midpoints, strand_a,
-                                  linear=True)
-print(np.shape(linear_axis))
+print("Reading files & initialising arrays as if linear")
+linear_strand_a, linear_strand_b, linear_midpoints = caxislib.read(name,
+                                                                   num_bp,
+                                                                   num_steps)
+
+print("Calculating linear first-order helical axis")
+linear_axis = caxislib.helix_axis(num_bp, num_steps, linear_midpoints,
+                                  linear_strand_a, linear=True)
+
+print("Calculating linear twist")
+linear_twist = caxislib.full_twist(name, num_bp, num_steps, linear_strand_a,
+                                   linear_strand_b, linear_axis, linear=True,
+                                   write=False)
+
+print("Calculating linear helical axis")
+linear_caxis = caxislib.caxis(name, num_bp, num_steps, linear_midpoints,
+                              linear_twist)
 
 tests = {
     "cross\t": [sum(sum(caxislib.cross(a, b))), -8850],
@@ -107,7 +120,10 @@ tests = {
     "helix_axis lin": [sum(sum(linear_axis[:, :, 150])),
                        sum(sum(helix_axis[:, :, 150]))],
     "full_twist": [sum(sum(twist)), 83325.202562320],
+    "full_twist lin": [sum(linear_twist[:, 150]), sum(twist[:, 150])],
     "caxis\t": [sum(sum(sum(caxis))), 1057251.5419271],
+    "caxis lin": [sum(sum(linear_caxis[:, :, 150])),
+                  sum(sum(caxis[:, :, 150]))],
     "sinreg\t": [sum(sum(sinreg)), 46.523100971271],
     "read_3col": [sum(sum(sum(read_coords))), sum(sum(sum(caxis)))],
     "writhe.writhe": [wr, -1.013515045594],
