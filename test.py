@@ -97,7 +97,7 @@ linear_twist = caxislib.full_twist(name, num_bp, num_steps, linear_strand_a,
 
 print("Calculating linear helical axis")
 linear_caxis = caxislib.caxis(name, num_bp, num_steps, linear_midpoints,
-                              linear_twist)
+                              linear_twist, linear=True)
 
 tests = {
     "cross\t": [sum(sum(caxislib.cross(a, b))), -8850],

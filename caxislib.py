@@ -300,10 +300,10 @@ def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
                 k += 1
                 # Store previous total twist
                 prev = total_twist[t]
-                # Just discard the ends in linear DNA
+                # In linear DNA, only go as far as the ends
                 # This might not be the best approach
-                if linear and (j-k < 0 or j+k >= np.shape(tw)[1]):
-                    pass
+                if linear and (j-k < 0 or j+k >= num_bp):
+                    break
                 else:
                     # Two more flanking steps would make twist exceed 360
                     total_twist[t] += (tw[t, (j-k) % num_bp] +
