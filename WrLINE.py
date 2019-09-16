@@ -44,17 +44,20 @@ print(f"Processing {name}")
 print(f"Treating system as {'linear' if linear else 'circular'}")
 
 print("Reading files & initialising arrays")
-strand_a, strand_b, midpoints = caxislib.read(name, num_bp, num_steps)
+strand_a, strand_b, midpoints = caxislib.read(name, num_bp, num_steps,
+                                              linear=linear)
 
 print("Calculating first-order helical axis")
-helix_axis = caxislib.helix_axis(num_bp, num_steps, midpoints, strand_a)
+helix_axis = caxislib.helix_axis(num_bp, num_steps, midpoints, strand_a,
+                                 linear=linear)
 
 print("Calculating twist")
 twist = caxislib.full_twist(name, num_bp, num_steps, strand_a, strand_b,
-                            helix_axis)
+                            helix_axis, linear=linear)
 
 print("Calculating helical axis")
-caxis = caxislib.caxis(name, num_bp, num_steps, midpoints, twist)
+caxis = caxislib.caxis(name, num_bp, num_steps, midpoints, twist,
+                       linear=linear)
 
 print("Calculating register angles")
 sinreg = caxislib.sinreg(name, num_bp, num_steps, midpoints, caxis)
