@@ -126,7 +126,7 @@ def read(name, num_bp, num_steps, linear=False):
         # Coordinate representation of a base-pair step
         midpoints = np.zeros(np.shape(strand_a))
         for i in range(num_bp):
-            if linear and i > np.shape(strand_a)[2]:
+            if linear and i+1 >= np.shape(strand_a)[2]:
                 midpoints[:, :, i] = 0.5 * (strand_a[:, :, i] +
                                             strand_b[:, :, i])
             else:
