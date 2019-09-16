@@ -264,8 +264,7 @@ def full_twist(name, num_bp, num_steps, strand_a, strand_b, haxis,
                                          strand_b[:, t, (j+1)],
                                          z)
                 # If not, just return zero
-                # This may not be the best way to handle this,
-                # but it works for now
+                # This may not be the best way to handle this
                 else:
                     result[t, j] = 0
             else:
@@ -300,7 +299,6 @@ def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
             # exceed 360 degrees
             while total_twist[t] < 360.0:
                 k += 1
-                # Store previous total twist
                 prev = total_twist[t]
                 # In linear DNA, only go as far as the ends
                 # This might not be the best approach
@@ -312,15 +310,15 @@ def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
                     # Sum single helix position
                     summation[:, t] += (midpoints[:, t, (j-k) % num_bp] +
                                         midpoints[:, t, (j+k) % num_bp])
-            # Add the flanks with weight < 1
-            weight = (360.0 - prev) / (total_twist[t] - prev)
             # If the linear condition was met,
             # the twist must be less than 360 degrees,
             # so there's no need to remove the last two flanking steps
             if linear and (j-k < 0 or j+k >= num_bp):
-                pass
+                weight = 0
             else:
-                summation[:, t] -= ((1-weight) *
+                # Add the flanks with weight < 1
+                weight = (360.0 - prev) / (total_twist[t] - prev)
+                summation[:, t] -= ((1 - weight) *
                                     (midpoints[:, t, (j-k) % num_bp] +
                                      midpoints[:, t, (j+k) % num_bp]))
             weight_3d = np.array([weight, weight, weight])
