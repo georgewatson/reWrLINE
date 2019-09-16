@@ -296,6 +296,8 @@ def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
             total_twist[t] += tw[t, j]
             summation[:, t] += midpoints[:, t, j]
             k = 0
+            # Find the point where two more flanking steps would make twist
+            # exceed 360 degrees
             while total_twist[t] < 360.0:
                 k += 1
                 # Store previous total twist
@@ -305,7 +307,6 @@ def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
                 if linear and (j-k < 0 or j+k >= num_bp):
                     break
                 else:
-                    # Two more flanking steps would make twist exceed 360
                     total_twist[t] += (tw[t, (j-k) % num_bp] +
                                        tw[t, (j+k) % num_bp])
                     # Sum single helix position
@@ -313,9 +314,10 @@ def caxis(name, num_bp, num_steps, midpoints, tw, linear=False):
                                         midpoints[:, t, (j+k) % num_bp])
             # Add the flanks with weight < 1
             weight = (360.0 - prev) / (total_twist[t] - prev)
-            # Again, discard the ends in linear DNA
-            # This might not be the best approach
-            if linear and (j <= 0 or np.shape(tw)[1] < j + k):
+            # If the linear condition was met,
+            # the twist must be less than 360 degrees,
+            # so there's no need to remove the last two flanking steps
+            if linear and (j-k < 0 or j+k >= num_bp):
                 pass
             else:
                 summation[:, t] -= ((1-weight) *
