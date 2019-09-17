@@ -66,6 +66,6 @@ print("Writing output .xyz and .3col files")
 caxislib.make_files(name, num_bp, num_steps, midpoints, caxis)
 
 print("Calculating writhe")
-wr = writhe.main(name, num_bp, num_steps)
+wr = writhe.main(name, num_bp, num_steps, linear)
 
 print(f"Job {name} done!")

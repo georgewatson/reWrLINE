@@ -14,16 +14,17 @@ def read_3col(filename, num_bp, num_steps):
     return np.array(x)
 
 
-def writhe(coords, t, length, axis=2):
+def writhe(coords, t, length, axis=2, linear=False):
     """
     Calculates write for a single timestep
     """
     shape = np.shape(coords[t])
-    y = np.zeros((shape[0]+1, shape[1]))
+    y = np.zeros((shape[0]+(0 if linear else 1), shape[1]))
     # Read one bp-step
     y[:shape[0], :] = coords[t]
-    # Add the head at the bottom
-    y[shape[0], :] = coords[t, 0]
+    if not linear:
+        # Add the head at the bottom
+        y[shape[0], :] = coords[t, 0]
     result = 0
     for j in range(length):
         for k in range(j):
@@ -38,7 +39,7 @@ def writhe(coords, t, length, axis=2):
     return result
 
 
-def main(name, num_bp, num_steps):
+def main(name, num_bp, num_steps, linear=False, write=True):
     # Read file
     coords = read_3col(name + '/C1.3col', num_bp, num_steps)
     length = len(coords[0])
@@ -46,8 +47,9 @@ def main(name, num_bp, num_steps):
     wr = []
     for t in range(num_steps):
         print(f"\r\tStep {t}...", end=" ")
-        wr.append([t+1, writhe(coords, t, length)])
+        wr.append([t+1, writhe(coords, t, length, linear)])
     wr = np.array(wr)
-    np.savetxt(name+'/writhe.ser', wr, fmt='%5d %9.4f')
+    if write:
+        np.savetxt(name+'/writhe.ser', wr, fmt='%5d %9.4f')
     print("Done!")
     return wr
