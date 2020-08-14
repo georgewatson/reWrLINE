@@ -1,6 +1,6 @@
 reWrLINE is a reimplementation of WrLINE (https://github.com/agnesnoy/WrLINE),
 very heavily based on the original.
-The contributors of both are listed here,
+The contributors to both are listed here,
 and should all receive attribution
 in any derivative works.
 
