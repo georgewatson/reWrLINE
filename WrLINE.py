@@ -38,7 +38,13 @@ except IndexError:
     linear = False
 
 # Strip trajectory to get C1' coordinates
-os.system(' '.join(['bash stripC.sh', name, top, traj]))
+os.system(f'mkdir -p {name}')
+os.system('\n'.join(['cpptraj <<EOF',
+                     f'parm {top}',
+                     f'trajin {traj}',
+                     "strip !(@C1')",
+                     f'trajout {name}/C.mdcrd',
+                    'EOF']))
 
 print(f"Processing {name}")
 print(f"Treating system as {'linear' if linear else 'circular'}")
