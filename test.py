@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+# pylint: disable=anomalous-backslash-in-string
+
 """
         __        __    _     ___ _   _ _____
  _ __ __\ \      / / __| |   |_ _| \ | | ____|
@@ -21,13 +23,19 @@ https://doi.org/10.1021/acs.jctc.5b00035
 This is the test suite.
 It is recommended that you run this before using this implementation.
 Tests ensure consistency with WrLINE, not correctness.
-"""
+"""  # noqa
 
+import filecmp
+import sys
+import numpy as np
 import caxislib
 import writhe
-import filecmp
-import numpy as np
-from termcolor import colored
+
+try:
+    from termcolor import colored
+except ImportError:
+    def colored(s, _):
+        return s
 
 print(__doc__)
 print("---\n")
@@ -171,5 +179,6 @@ if failures:
     print(f"Total failures:\t{len(failures)}")
     for test in failures:
         print(f"\t{test}")
+    sys.exit(len(failures))
 else:
     print("All tests passed!")

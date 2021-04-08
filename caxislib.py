@@ -189,7 +189,7 @@ def sinreg(name, num_bp, num_steps, midpoints, caxis, write=True):
         v1 = caxis[:, :, m[2]] - caxis[:, :, m[1]]
         plane_vector = cross(v1, v0)
         minor_groove = midpoints[:, :, m[0]] - caxis[:, :, m[0]]
-        # sinreg[:, j+1] = |M × C| / (|M| |C|)
+        # sinreg[:, j+1] = |M <cross> C| / (|M| |C|)
         # where M = minor_groove & C = plane_vector
         result[:, j+1] = (norm(cross(minor_groove, plane_vector)) /
                           (norm(minor_groove) * norm(plane_vector)))
