@@ -169,7 +169,7 @@ for test, assertion in tests.items():
             print(f"\tExpected\t{assertion[1]}")
             print(f"\tGot\t\t{assertion[0]}")
     except Exception as e:
-        failures += 1
+        failures.append(test)
         print(fail_text)
         print("\tThe following exception was raised:")
         print(f"\t{e}")
